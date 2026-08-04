@@ -6,9 +6,9 @@ import java.nio.ByteOrder;
 import fouriertransform.sounddata.FrequencyData;
 
 public class MonoSignal extends Signal {
-    public float[] samples;
+    public double[] samples;
 
-    public MonoSignal(float[] samples, int samplingRate) {
+    public MonoSignal(double[] samples, int samplingRate) {
         super(SoundType.MONO, samplingRate);
         this.samples = samples;
     }
@@ -17,13 +17,13 @@ public class MonoSignal extends Signal {
         super(SoundType.MONO, samplingRate);
 
         int numSamples = samplingRate * duration;
-        float[] createdSamples = new float[numSamples];
+        double[] createdSamples = new double[numSamples];
 
         for (int s = 0; s < numSamples; s++) {
-            float t = (float) s / numSamples * duration;
+            double t = (double) s / numSamples * duration;
 
             for (FrequencyData fd : spectrum) {
-                float angle = t * TAU * fd.getFrequency() + fd.getPhase();
+                double angle = t * TAU * fd.getFrequency() + fd.getPhase();
                 createdSamples[s] += Math.cos(angle) * fd.getAmplitude();
             }
         }
@@ -32,7 +32,7 @@ public class MonoSignal extends Signal {
     }
 
     @Override
-    public float[] getSamples() {
+    public double[] getSamples() {
         return samples;
     }
 
@@ -41,7 +41,7 @@ public class MonoSignal extends Signal {
         ByteBuffer byteBuffer = ByteBuffer.allocate(samples.length * 4);
         byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
         for (int i = 0; i < samples.length; i++) {
-            byteBuffer.putFloat(i * 4, samples[i]);
+            byteBuffer.putDouble(i * 4, samples[i]);
         }
         getByeData(byteBuffer.array());
     }

@@ -3,32 +3,46 @@ package fouriertransform;
 import java.io.File;
 
 import fouriertransform.files.reader.Reader;
-import fouriertransform.graphing.Heatmap;
+import fouriertransform.files.score.XML;
+import fouriertransform.graphing.Sketchbook;
 import fouriertransform.signals.Signal;
-import fouriertransform.sounddata.FrequencyData;
+import fouriertransform.sounddata.FrequencyMatrix;
+import fouriertransform.sounddata.NoteMatrix;
 import fouriertransform.transforms.STFT;
 
 public class FourierTransform {
-	static final File WAVE_FILE = new File("src/main/resources/Tsuzuku [music].wav");
+	static final File WAVE_FILE = new File("src/main/resources/mnbthmus.wav");
 	static final File SPECTRUM_FILE = new File("src/main/resources/Spectrum.txt");
 	static final File OUTPUT_FILE = new File("src/main/resources/Output.txt");
 	static final File GRAPH_FILE = new File("src/main/resources/Graph.png");
+	private final static String XML_FILE = "test.xml";
 
 	public static void main(String[] args) {
-		run();
+		FrequencyMatrix spectrumMatrix = processSignal();
+		// new Spectrum(500, 500, spectrumMatrix.getMatrix()[75]);
+		spectrumMatrix.trimByFrequencyRange(0, 2000);
+		run(spectrumMatrix);
+		// runXML(spectrumMatrix);
 	}
 
-	private static void run() {
+	private static FrequencyMatrix processSignal() {
 		Reader reader = new Reader(WAVE_FILE);
-		Heatmap grapher = new Heatmap(GRAPH_FILE);
+		Signal signal = reader.readSignal(63, 80);
+		return STFT.ShortTimeFourierTransform(signal, 4096);
+	}
+
+	private static void run(FrequencyMatrix spectrumMatrix) {
+		Sketchbook sketchbook = new Sketchbook(1280, 720);
+		sketchbook.addSpectrogram(spectrumMatrix);
+		sketchbook.startDisplay();
+
 		// Histogram grapher = new Histogram(GRAPH_FILE);
+		// grapher.graph(spectrumMatrix.getMatrix()[64]);
+	}
 
-		Signal signal = reader.readSignal(31, 33);
-		FrequencyData[][] spectrumMatrix =
-				STFT.ShortTimeFourierTransform(signal, (signal.getSamplingRate() / 10));
-
-		grapher.graph(FrequencyData.trimByFrequencyRange(spectrumMatrix, 0, 2000));
-		// grapher.graphFrequency(spectrumMatrix);
+	private static void runXML(FrequencyMatrix spectrumMatrix) {
+		XML xml = new XML();
+		xml.saveToXML(XML_FILE, new NoteMatrix(spectrumMatrix));
 	}
 
 	public static final File getWAV_FILE() {

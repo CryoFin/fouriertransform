@@ -44,7 +44,7 @@ public class Reader {
         return fileDetails;
     }
 
-    public Signal readSignal(int startSeconds, int endSeconds) {
+    public Signal readSignal(double startSeconds, double endSeconds) {
         createWavChunkLookup();
         readFileDetails(false);
         return readSignalFromFile(startSeconds, endSeconds);
@@ -125,14 +125,14 @@ public class Reader {
         }
     }
 
-    private Signal readSignalFromFile(float startSeconds, float endSeconds) {
+    private Signal readSignalFromFile(double startSeconds, double endSeconds) {
         boolean isFull = false;
         if (startSeconds == 0 && endSeconds == 0) {
             isFull = true;
         }
         int numSamples = 0;
-        float normalizationFactor =
-                (float) 1 / (float) (Math.pow(2, (fileDetails.bitsPerSample - 1)) - 1);
+        double normalizationFactor =
+                (double) 1 / (double) (Math.pow(2, (fileDetails.bitsPerSample - 1)) - 1);
         try {
             reader.reset();
             long bytesToSkip = chunkLookup.get("data") + 8
@@ -150,10 +150,11 @@ public class Reader {
             case 1 -> {
                 try {
                     byte[] dataBlock = new byte[fileDetails.dataBlockSize];
-                    float[] samples = new float[numSamples];
+                    double[] samples = new double[numSamples];
                     for (int i = 0; i < numSamples; i++) {
                         reader.read(dataBlock, 0, fileDetails.dataBlockSize);
-                        samples[i] = BitHelper.convertBytesToFloat(dataBlock) * normalizationFactor;
+                        samples[i] =
+                                BitHelper.convertBytesToDouble(dataBlock) * normalizationFactor;
                     }
                     return new MonoSignal(samples, fileDetails.samplingRate);
                 } catch (IOException e) {
@@ -164,15 +165,15 @@ public class Reader {
                 try {
                     byte[] dataBlockLeft = new byte[fileDetails.bytesPerSample];
                     byte[] dataBlockRight = new byte[fileDetails.bytesPerSample];
-                    float[] leftSamples = new float[numSamples];
-                    float[] rightSamples = new float[numSamples];
+                    double[] leftSamples = new double[numSamples];
+                    double[] rightSamples = new double[numSamples];
                     for (int i = 0; i < numSamples; i++) {
                         reader.read(dataBlockLeft, 0, fileDetails.bytesPerSample);
                         reader.read(dataBlockRight, 0, fileDetails.bytesPerSample);
                         leftSamples[i] =
-                                BitHelper.convertBytesToFloat(dataBlockLeft) * normalizationFactor;
-                        rightSamples[i] =
-                                BitHelper.convertBytesToFloat(dataBlockRight) * normalizationFactor;
+                                BitHelper.convertBytesToDouble(dataBlockLeft) * normalizationFactor;
+                        rightSamples[i] = BitHelper.convertBytesToDouble(dataBlockRight)
+                                * normalizationFactor;
                     }
                     return new StereoSignal(leftSamples, rightSamples, fileDetails.samplingRate);
                 } catch (IOException e) {
@@ -181,9 +182,9 @@ public class Reader {
             }
             default -> {
                 System.out.println("Unknown track type");
-                return new MonoSignal(new float[0], 0);
+                return new MonoSignal(new double[0], 0);
             }
         }
-        return new MonoSignal(new float[0], 0);
+        return new MonoSignal(new double[0], 0);
     }
 }

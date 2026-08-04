@@ -5,30 +5,30 @@ import java.util.PriorityQueue;
 import java.util.stream.Stream;
 
 public class FrequencyData {
-    private final float frequency;
-    private final float phase;
-    private final float amplitude;
+    private final double frequency;
+    private final double phase;
+    private final double amplitude;
 
-    public FrequencyData(float frequency, float phase, float amplitude) {
+    public FrequencyData(double frequency, double phase, double amplitude) {
         this.frequency = frequency;
         this.phase = phase;
         this.amplitude = amplitude;
     }
 
-    public float getFrequency() {
+    public double getFrequency() {
         return frequency;
     }
 
-    public float getPhase() {
+    public double getPhase() {
         return phase;
     }
 
-    public float getAmplitude() {
+    public double getAmplitude() {
         return amplitude;
     }
 
     public static FrequencyData getPeakFrequency(FrequencyData[] spectrum) {
-        float peakFrequency = Float.MIN_VALUE;
+        double peakFrequency = Double.MIN_VALUE;
         int idx = -1;
         for (int i = 0; i < spectrum.length; i++) {
             if (spectrum[i].getFrequency() > peakFrequency) {
@@ -39,8 +39,44 @@ public class FrequencyData {
         return spectrum[idx];
     }
 
+    public static double getMaxAmplitude(FrequencyData[] spectrum) {
+        double maxAmplitude = -1;
+        for (FrequencyData frequencyData : spectrum) {
+            maxAmplitude = Math.max(maxAmplitude, frequencyData.amplitude);
+        }
+        return maxAmplitude;
+    }
+
+    public static double getMaxAmplitude(FrequencyData[][] spectrumMatrix) {
+        double maxAmplitude = -1;
+        for (FrequencyData[] spectrum : spectrumMatrix) {
+            maxAmplitude = Math.max(getMaxAmplitude(spectrum), maxAmplitude);
+        }
+        return maxAmplitude;
+    }
+
+    public static void normalize(FrequencyData[] spectrum) {
+        double maxAmplitude = getMaxAmplitude(spectrum);
+        for (int i = 0; i < spectrum.length; i++) {
+            FrequencyData oldFrequencyData = spectrum[i];
+            spectrum[i] = new FrequencyData(oldFrequencyData.frequency, oldFrequencyData.phase,
+                    oldFrequencyData.amplitude / maxAmplitude);
+        }
+    }
+
+    public static void normalize(FrequencyData[][] spectrumMatrix) {
+        double maxAmplitude = getMaxAmplitude(spectrumMatrix);
+        for (FrequencyData[] spectrum : spectrumMatrix) {
+            for (int i = 0; i < spectrum.length; i++) {
+                FrequencyData oldFrequencyData = spectrum[i];
+                spectrum[i] = new FrequencyData(oldFrequencyData.frequency, oldFrequencyData.phase,
+                        Math.min(oldFrequencyData.amplitude / maxAmplitude, 1));
+            }
+        }
+    }
+
     public static FrequencyData[][] trimByAmplitudeThreshold(FrequencyData[][] spectrumMatrix,
-            float threshold) {
+            double threshold) {
         int lowestIdx = spectrumMatrix[0].length;
         for (FrequencyData[] spectrum : spectrumMatrix) {
             for (int i = 0; i < lowestIdx; i++) {
@@ -72,7 +108,7 @@ public class FrequencyData {
     }
 
     public static FrequencyData[][] trimByFrequencyRange(FrequencyData[][] spectrumMatrix,
-            float minFrequency, float maxFrequency) {
+            double minFrequency, double maxFrequency) {
         final int L = spectrumMatrix[0].length;
 
         int low = 0;
@@ -124,7 +160,7 @@ public class FrequencyData {
         return spectrum;
     }
 
-    public static FrequencyData[] filter(FrequencyData[] spectrum, final float Threshold) {
+    public static FrequencyData[] filter(FrequencyData[] spectrum, final double Threshold) {
         int filtered = spectrum.length;
         int idx = 0;
         while (idx < filtered) {
@@ -141,7 +177,7 @@ public class FrequencyData {
     }
 
     public static FrequencyData[][] filter(FrequencyData[][] spectrumMatrix,
-            final Float Threshold) {
+            final double Threshold) {
         for (FrequencyData[] spectrum : spectrumMatrix) {
             filter(spectrum, Threshold);
         }

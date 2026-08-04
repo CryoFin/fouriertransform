@@ -36,8 +36,10 @@ public class Histogram {
         // chart.getStyler().setXAxisLogarithmicDecadeOnly(true);
         chart.getStyler().setXAxisMaxLabelCount(50);
 
-        List<Float> f = Stream.of(spectrum).map(s -> s.getFrequency()).collect(Collectors.toList());
-        List<Float> a = Stream.of(spectrum).map(s -> s.getAmplitude()).collect(Collectors.toList());
+        List<Double> f =
+                Stream.of(spectrum).map(s -> s.getFrequency()).collect(Collectors.toList());
+        List<Double> a =
+                Stream.of(spectrum).map(s -> s.getAmplitude()).collect(Collectors.toList());
 
         chart.addSeries(":)", f, a);
 

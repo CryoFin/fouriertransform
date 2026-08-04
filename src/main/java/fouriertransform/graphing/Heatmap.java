@@ -33,10 +33,12 @@ public class Heatmap {
     }
 
     public void graph(FrequencyData[][] spectrumMatrix) {
-        final float Threshold = 0.001f;
+        final double Threshold = 0.001f;
 
+        FrequencyData.normalize(spectrumMatrix);
         NoteData[][] noteMatrix =
                 NoteHelper.convertSpectrumMatrixToNoteDataMatrix(spectrumMatrix, Threshold);
+        NoteData.normalize(noteMatrix);
 
         NoteData[] fs = noteMatrix[0];
 
@@ -49,7 +51,8 @@ public class Heatmap {
 
         for (int s = 0; s < noteMatrix.length; s++) {
             for (int fr = 0; fr < fs.length; fr++) {
-                float a = noteMatrix[s][fr].getAmplitude();
+                double a = noteMatrix[s][fr].getAmplitude();
+                a = (double) Math.pow(a, 1.5);
                 h.add(new Number[] {s, fr, a < Threshold ? 0 : a});
             }
         }
@@ -63,9 +66,9 @@ public class Heatmap {
         chart.getStyler()
                 .setRangeColors(new Color[] {Color.blue, Color.cyan, Color.orange, Color.red});
         chart.getStyler().setXAxisMaxLabelCount(98);
+        chart.getStyler().setPlotMargin(0);
         chart.getStyler().setPlotGridHorizontalLinesVisible(true);
         chart.getStyler().setPlotGridVerticalLinesVisible(false);
-        chart.getStyler().setPlotMargin(5);
 
         chart.addSeries(":)", t, n, h);
 
@@ -93,18 +96,18 @@ public class Heatmap {
 
         FrequencyData[] fs = spectrumMatrix[0];
 
-        List<Float> f = Stream.of(fs).map(s -> s.getFrequency()).collect(Collectors.toList());
+        List<Double> f = Stream.of(fs).map(s -> s.getFrequency()).collect(Collectors.toList());
         List<Integer> t = new ArrayList<>(spectrumMatrix.length);
         for (int i = 0; i < spectrumMatrix.length; i++) {
             t.add(i);
         }
         List<Number[]> h = new ArrayList<>();
 
-        final float Threshold = 0.000f;
+        final double Threshold = 0.000f;
 
         for (int s = 0; s < spectrumMatrix.length; s++) {
             for (int fr = 0; fr < fs.length; fr++) {
-                float a = spectrumMatrix[s][fr].getAmplitude();
+                double a = spectrumMatrix[s][fr].getAmplitude();
                 h.add(new Number[] {s, fr, a < Threshold ? 0 : a});
             }
         }

@@ -44,29 +44,31 @@ public class NoteHelper {
     }
 
     public static NoteData[][] convertSpectrumMatrixToNoteDataMatrix(
-            FrequencyData[][] spectrumMatrix, final float Threshold) {
+            FrequencyData[][] spectrumMatrix, final double Threshold) {
         ArrayList<NoteData[]> noteData = new ArrayList<>(spectrumMatrix.length);
-        HashMap<String, Float> noteAmplitudes;
+        HashMap<String, Double> noteAmplitudes;
         for (FrequencyData[] spectrum : spectrumMatrix) {
             noteAmplitudes = new HashMap<>();
             for (FrequencyData fd : spectrum) {
-                float amplitude = fd.getAmplitude();
-                if (amplitude < Threshold)
-                    amplitude = 0;
+                double amplitude = fd.getAmplitude();
                 String note = NoteHelper.convertFrequencyToNote(fd.getFrequency());
+                if (amplitude < Threshold || note.equals("HIGH"))
+                    amplitude = 0;
                 if (noteAmplitudes.containsKey(note)) {
-                    noteAmplitudes.put(note, amplitude + amplitude);
+                    noteAmplitudes.put(note, noteAmplitudes.get(note) + amplitude);
                 } else {
                     noteAmplitudes.put(note, amplitude);
                 }
             }
             ArrayList<NoteData> notes = new ArrayList<>();
-            for (HashMap.Entry<String, Float> noteAmplitude : noteAmplitudes.entrySet()) {
+            for (HashMap.Entry<String, Double> noteAmplitude : noteAmplitudes.entrySet()) {
                 notes.add(new NoteData(noteAmplitude.getKey(), noteAmplitude.getValue()));
             }
             noteData.add(NoteData.sort(notes.toArray(NoteData[]::new)));
         }
-        return noteData.toArray(NoteData[][]::new);
+        NoteData[][] noteMatrix = noteData.toArray(NoteData[][]::new);
+        NoteData.normalize(noteMatrix);
+        return noteMatrix;
     }
 
     private static void createINT_TO_NOTE() {
@@ -188,7 +190,7 @@ public class NoteHelper {
         NOTE_TO_INT.put("HIGH", 108);
     }
 
-    public static String convertFrequencyToNote(float frequency) {
+    public static String convertFrequencyToNote(double frequency) {
         if (frequency < 0)
             throw new IllegalArgumentException("Negative Frequency");
         else if (frequency < 15.88)
@@ -464,14 +466,14 @@ public class NoteHelper {
         nts.put(10, "A#/Bb");
         nts.put(11, "B");
 
-        HashMap<String, Float[]> notesArr = new HashMap<>();
+        HashMap<String, Double[]> notesArr = new HashMap<>();
 
         notes.forEach((k, v) -> notesArr.put(k,
                 Stream.of(v.split("\t")).map(s -> (String) s.substring(0, s.length() - 3))
-                        .map(s -> Float.valueOf(s)).collect(Collectors.toList())
-                        .toArray(Float[]::new)));
+                        .map(s -> Double.valueOf(s)).collect(Collectors.toList())
+                        .toArray(Double[]::new)));
 
-        HashMap<String, Float> ul = new HashMap<>();
+        HashMap<String, Double> ul = new HashMap<>();
 
         for (int o = 0; o < notesArr.get("C").length; o++) {
             for (int n = 0; n < notesArr.size(); n++) {
@@ -482,15 +484,15 @@ public class NoteHelper {
                 String currN = nts.get(n);
                 String nextN = nts.get(next);
 
-                float cf = notesArr.get(currN)[o];
-                float nf = notesArr.get(nextN)[next == 0 ? o + 1 : o];
-                float logmid = (float) Math.sqrt(cf * nf);
+                double cf = notesArr.get(currN)[o];
+                double nf = notesArr.get(nextN)[next == 0 ? o + 1 : o];
+                double logmid = (double) Math.sqrt(cf * nf);
                 ul.put(currN + o, logmid);
             }
         }
 
-        PriorityQueue<HashMap.Entry<String, Float>> pq = new PriorityQueue<>(
-                (HashMap.Entry<String, Float> a1, HashMap.Entry<String, Float> b1) -> {
+        PriorityQueue<HashMap.Entry<String, Double>> pq = new PriorityQueue<>(
+                (HashMap.Entry<String, Double> a1, HashMap.Entry<String, Double> b1) -> {
                     if (Objects.equals(a1.getValue(), b1.getValue())) {
                         return 0;
                     }
@@ -499,8 +501,8 @@ public class NoteHelper {
         pq.addAll(ul.entrySet());
 
         while (!pq.isEmpty()) {
-            HashMap.Entry<String, Float> es = pq.poll();
-            float fr = es.getValue();
+            HashMap.Entry<String, Double> es = pq.poll();
+            double fr = es.getValue();
             String n = es.getKey();
 
             System.out.println(

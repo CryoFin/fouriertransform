@@ -4,7 +4,7 @@ public abstract class Signal {
     private final SoundType type;
     private final int samplingRate;
     private byte[] byteData;
-    static final float TAU = (float) (2 * Math.PI);
+    static final double TAU = (double) (2 * Math.PI);
 
     public Signal(SoundType type, int samplingRate) {
         this.type = type;
@@ -30,12 +30,12 @@ public abstract class Signal {
         this.byteData = byteData;
     }
 
-    abstract public float[] getSamples();
+    abstract public double[] getSamples();
 
     public static Signal createArtificialSignal(int frequency, int samplingRate, int seconds) {
-        float[] samples = new float[samplingRate * seconds];
+        double[] samples = new double[samplingRate * seconds];
         for (int i = 0; i < samplingRate * seconds; i++) {
-            samples[i] = (float) Math.cos(TAU * frequency * i / (float) samplingRate);
+            samples[i] = (double) Math.cos(TAU * frequency * i / (double) samplingRate);
         }
 
         return new MonoSignal(samples, samplingRate);

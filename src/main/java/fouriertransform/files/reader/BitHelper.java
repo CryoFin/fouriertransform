@@ -1,7 +1,7 @@
 package fouriertransform.files.reader;
 
 class BitHelper {
-    public static int convertBytesToFloat(byte[] bytes) {
+    public static int convertBytesToDouble(byte[] bytes) {
         switch (bytes.length) {
             case 1 -> {
                 return bytes[0] - 128;
